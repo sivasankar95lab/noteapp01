@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickNotes - Your Personal Note Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            min-height: 70vh;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 30px;
+        }
+
+        .note-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .file-input-container {
+            position: relative;
+            background: #fff;
+            border: 2px dashed #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input-container:hover {
+            border-color: #4facfe;
+            background: #f8f9ff;
+        }
+
+        .file-input-container.dragover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .file-icon {
+            font-size: 24px;
+            color: #4facfe;
+        }
+
+        .file-preview {
+            margin-top: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            truncate: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .file-size {
+            color: #6c757d;
+            font-size: 11px;
+        }
+
+        .file-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+            margin: 0 5px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .notes-area {
+            padding: 30px;
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .note-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .note-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .note-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .note-content {
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .note-content.expanded {
+            max-height: none;
+        }
+
+        .note-attachments {
+            margin: 15px 0;
+        }
+
+        .attachment-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .attachment-item:hover {
+            background: #bbdefb;
+        }
+
+        .attachment-item.selected {
+            background: #1976d2;
+            color: white;
+            border-color: #1565c0;
+        }
+
+        .attachment-checkbox {
+            margin-right: 5px;
+        }
+
+        .bulk-actions {
+            display: none;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .bulk-actions.show {
+            display: flex;
+        }
+
+        .bulk-actions-info {
+            flex: 1;
+            font-size: 14px;
+            color: #495057;
+            display: flex;
+            align-items: center;
+        }
+
+        .attachment-icon {
+            font-size: 14px;
+        }
+
+        .attachment-name {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: #adb5bd;
+            margin-bottom: 10px;
+        }
+
+        .note-category {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .note-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stats h3 {
+            margin-bottom: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .file-type-icon {
+            margin-right: 5px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .notes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 QuickNotes</h1>
+            <p>Organize your thoughts, capture your ideas with files</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="stats">
+                    <h3 id="noteCount">0</h3>
+                    <p>Total Notes</p>
+                </div>
+                
+                <form class="note-form" id="noteForm">
+                    <div class="form-group">
+                        <label for="noteTitle">Title</label>
+                        <input type="text" id="noteTitle" placeholder="Enter note title..." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="noteContent">Content</label>
+                        <textarea id="noteContent" placeholder="Write your note here..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="noteCategory">Category</label>
+                        <select id="noteCategory">
+                            <option value="Personal">Personal</option>
+                            <option value="Work">Work</option>
+                            <option value="Study">Study</option>
+                            <option value="Ideas">Ideas</option>
+                            <option value="Todo">Todo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Attachments</label>
+                        <div class="file-input-container" id="fileDropZone">
+                            <input type="file" id="fileInput" class="file-input" multiple accept="*/*">
+                            <div class="file-input-label">
+                                <div class="file-icon">📎</div>
+                                <div>
+                                    <strong>Click to upload</strong> or drag and drop files here
+                                    <br>
+                                    <small>Any file type, max 10MB per file, select multiple files</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bulk-actions" id="bulkActions">
+                            <div class="bulk-actions-info">
+                                <span id="selectedCount">0</span> files selected
+                            </div>
+                            <button type="button" class="btn btn-small btn-danger" onclick="notesApp.deleteSelectedFiles()">
+                                Delete Selected
+                            </button>
+                            <button type="button" class="btn btn-small" onclick="notesApp.selectAllFiles()">
+                                Select All
+                            </button>
+                            <button type="button" class="btn btn-small" onclick="notesApp.deselectAllFiles()">
+                                Deselect All
+                            </button>
+                        </div>
+                        <div class="file-preview" id="filePreview"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <span id="submitText">Add Note</span>
+                    </button>
+                </form>
+                
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search notes...">
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Work">Work</option>
+                        <option value="Study">Study</option>
+                        <option value="Ideas">Ideas</option>
+                        <option value="Todo">Todo</option>
+                    </select>
+                    
+                    <select id="sortBy">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="title">By Title</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="notes-area">
+                <div class="notes-grid" id="notesContainer">
+                    <div class="empty-state">
+                        <h3>No notes yet</h3>
+                        <p>Create your first note to get started!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        class NotesApp {
+            constructor() {
+                this.notes = this.loadNotes();
+                this.editingId = null;
+                this.selectedFiles = [];
+                this.selectedFileIds = new Set();
+                this.maxFileSize = 10 * 1024 * 1024; // 10MB
+                this.initializeEventListeners();
+                this.renderNotes();
+                this.updateStats();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('noteForm').addEventListener('submit', (e) => this.handleSubmit(e));
+                document.getElementById('searchInput').addEventListener('input', (e) => this.handleSearch(e));
+                document.getElementById('categoryFilter').addEventListener('change', () => this.renderNotes());
+                document.getElementById('sortBy').addEventListener('change', () => this.renderNotes());
+                
+                // File input events
+                const fileInput = document.getElementById('fileInput');
+                const dropZone = document.getElementById('fileDropZone');
+                
+                fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
+                dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                dropZone.addEventListener('drop', (e) => this.handleDrop(e));
+                dropZone.addEventListener('click', () => fileInput.click());
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('fileDropZone').classList.add('dragover');
+            }
+
+            handleDragLeave(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('fileDropZone').classList.remove('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('fileDropZone').classList.remove('dragover');
+                
+                const files = Array.from(e.dataTransfer.files);
+                this.processFiles(files);
+            }
+
+            handleFileSelect(e) {
+                const files = Array.from(e.target.files);
+                this.processFiles(files);
+            }
+
+            processFiles(files) {
+                for (const file of files) {
+                    if (file.size > this.maxFileSize) {
+                        this.showToast(`File "${file.name}" is too large. Maximum size is 10MB.`, 'error');
+                        continue;
+                    }
+                    
+                    this.addFileToSelection(file);
+                }
+                this.updateFilePreview();
+            }
+
+            async addFileToSelection(file) {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const fileData = {
+                        id: Date.now() + Math.random(),
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: e.target.result,
+                        isImage: file.type.startsWith('image/')
+                    };
+                    
+                    this.selectedFiles.push(fileData);
+                    this.updateFilePreview();
+                };
+                
+                reader.readAsDataURL(file);
+            }
+
+            updateFilePreview() {
+                const preview = document.getElementById('filePreview');
+                const bulkActions = document.getElementById('bulkActions');
+                
+                if (this.selectedFiles.length === 0) {
+                    preview.innerHTML = '';
+                    bulkActions.classList.remove('show');
+                    return;
+                }
+                
+                // Show bulk actions if there are files
+                if (this.selectedFiles.length > 1) {
+                    bulkActions.classList.add('show');
+                    this.updateSelectedCount();
+                }
+                
+                preview.innerHTML = `
+                    <div style="margin-bottom: 10px; font-weight: 600; color: #495057;">
+                        ${this.selectedFiles.length} file(s) attached
+                        ${this.selectedFiles.length > 1 ? `<button type="button" class="btn btn-small" onclick="notesApp.toggleFileSelection()" style="margin-left: 10px;">Toggle Selection Mode</button>` : ''}
+                    </div>
+                    ${this.selectedFiles.map(file => `
+                        <div class="file-item ${this.selectedFileIds.has(file.id) ? 'selected' : ''}" onclick="notesApp.toggleFileSelection('${file.id}')">
+                            <div class="file-info">
+                                ${this.selectedFiles.length > 1 ? `<input type="checkbox" class="attachment-checkbox" ${this.selectedFileIds.has(file.id) ? 'checked' : ''} onchange="event.stopPropagation(); notesApp.toggleFileSelection('${file.id}')">` : ''}
+                                <span class="file-type-icon">${this.getFileIcon(file.type)}</span>
+                                <span class="file-name" title="${file.name}">${file.name}</span>
+                                <span class="file-size">(${this.formatFileSize(file.size)})</span>
+                            </div>
+                            <button type="button" class="file-remove" onclick="event.stopPropagation(); notesApp.removeFile('${file.id}')">×</button>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            toggleFileSelection(fileId) {
+                if (!fileId) {
+                    // Toggle selection mode - select/deselect all
+                    if (this.selectedFileIds.size === this.selectedFiles.length) {
+                        this.selectedFileIds.clear();
+                    } else {
+                        this.selectedFileIds = new Set(this.selectedFiles.map(f => f.id));
+                    }
+                } else {
+                    // Toggle individual file
+                    if (this.selectedFileIds.has(fileId)) {
+                        this.selectedFileIds.delete(fileId);
+                    } else {
+                        this.selectedFileIds.add(fileId);
+                    }
+                }
+                
+                this.updateFilePreview();
+            }
+
+            selectAllFiles() {
+                this.selectedFileIds = new Set(this.selectedFiles.map(f => f.id));
+                this.updateFilePreview();
+            }
+
+            deselectAllFiles() {
+                this.selectedFileIds.clear();
+                this.updateFilePreview();
+            }
+
+            updateSelectedCount() {
+                const countElement = document.getElementById('selectedCount');
+                if (countElement) {
+                    countElement.textContent = this.selectedFileIds.size;
+                }
+            }
+
+            deleteSelectedFiles() {
+                if (this.selectedFileIds.size === 0) {
+                    this.showToast('No files selected for deletion', 'error');
+                    return;
+                }
+                
+                const count = this.selectedFileIds.size;
+                if (confirm(`Are you sure you want to delete ${count} selected file(s)?`)) {
+                    this.selectedFiles = this.selectedFiles.filter(file => !this.selectedFileIds.has(file.id));
+                    this.selectedFileIds.clear();
+                    this.updateFilePreview();
+                    this.showToast(`${count} file(s) deleted successfully!`);
+                }
+            }
+
+            removeFile(fileId) {
+                this.selectedFiles = this.selectedFiles.filter(file => file.id !== fileId);
+                this.selectedFileIds.delete(fileId);
+                this.updateFilePreview();
+                this.showToast('File removed successfully!');
+            }
+
+            getFileIcon(mimeType) {
+                if (mimeType.startsWith('image/')) return '🖼️';
+                if (mimeType.startsWith('video/')) return '🎥';
+                if (mimeType.startsWith('audio/')) return '🎵';
+                if (mimeType.includes('pdf')) return '📄';
+                if (mimeType.includes('document') || mimeType.includes('msword')) return '📝';
+                if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return '📊';
+                if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '📑';
+                if (mimeType.includes('zip') || mimeType.includes('rar')) return '🗜️';
+                if (mimeType.includes('text/')) return '📄';
+                return '📎';
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            handleSubmit(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('noteTitle').value.trim();
+                const content = document.getElementById('noteContent').value.trim();
+                const category = document.getElementById('noteCategory').value;
+                
+                if (!title || !content) return;
+                
+                if (this.editingId) {
+                    this.updateNote(this.editingId, title, content, category, [...this.selectedFiles]);
+                    this.editingId = null;
+                    document.getElementById('submitText').textContent = 'Add Note';
+                } else {
+                    this.addNote(title, content, category, [...this.selectedFiles]);
+                }
+                
+                this.clearForm();
+                this.renderNotes();
+                this.updateStats();
+                this.showToast('Note saved successfully!');
+            }
+
+            addNote(title, content, category, attachments = []) {
+                const note = {
+                    id: Date.now().toString(),
+                    title,
+                    content,
+                    category,
+                    attachments,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                this.notes.unshift(note);
+                this.saveNotes();
+            }
+
+            updateNote(id, title, content, category, attachments = []) {
+                const noteIndex = this.notes.findIndex(note => note.id === id);
+                if (noteIndex !== -1) {
+                    this.notes[noteIndex] = {
+                        ...this.notes[noteIndex],
+                        title,
+                        content,
+                        category,
+                        attachments,
+                        updatedAt: new Date().toISOString()
+                    };
+                    this.saveNotes();
+                }
+            }
+
+            deleteNote(id) {
+                if (confirm('Are you sure you want to delete this note and all its attachments?')) {
+                    this.notes = this.notes.filter(note => note.id !== id);
+                    this.saveNotes();
+                    this.renderNotes();
+                    this.updateStats();
+                    this.showToast('Note deleted successfully!');
+                }
+            }
+
+            editNote(id) {
+                const note = this.notes.find(note => note.id === id);
+                if (note) {
+                    document.getElementById('noteTitle').value = note.title;
+                    document.getElementById('noteContent').value = note.content;
+                    document.getElementById('noteCategory').value = note.category;
+                    document.getElementById('submitText').textContent = 'Update Note';
+                    this.selectedFiles = note.attachments || [];
+                    this.selectedFileIds.clear(); // Clear selection when editing
+                    this.updateFilePreview();
+                    this.editingId = id;
+                    
+                    // Scroll to form
+                    document.getElementById('noteForm').scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+
+            downloadAllAttachments(noteId) {
+                const note = this.notes.find(n => n.id === noteId);
+                if (!note || !note.attachments || note.attachments.length === 0) return;
+                
+                let downloadCount = 0;
+                const totalFiles = note.attachments.length;
+                
+                // Create a small delay between downloads to avoid browser blocking
+                note.attachments.forEach((attachment, index) => {
+                    setTimeout(() => {
+                        const link = document.createElement('a');
+                        link.href = attachment.data;
+                        link.download = attachment.name;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        downloadCount++;
+                        if (downloadCount === totalFiles) {
+                            this.showToast(`Downloaded all ${totalFiles} files successfully!`);
+                        }
+                    }, index * 200); // 200ms delay between each download
+                });
+            }
+
+            downloadAttachment(noteId, attachmentId) {
+                const note = this.notes.find(n => n.id === noteId);
+                if (!note) return;
+                
+                const attachment = note.attachments.find(a => a.id === attachmentId);
+                if (!attachment) return;
+                
+                const link = document.createElement('a');
+                link.href = attachment.data;
+                link.download = attachment.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showToast(`Downloaded "${attachment.name}"!`);
+            }
+
+            handleSearch(e) {
+                this.renderNotes();
+            }
+
+            getFilteredAndSortedNotes() {
+                let filteredNotes = [...this.notes];
+                
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const categoryFilter = document.getElementById('categoryFilter').value;
+                const sortBy = document.getElementById('sortBy').value;
+                
+                if (searchTerm) {
+                    filteredNotes = filteredNotes.filter(note => 
+                        note.title.toLowerCase().includes(searchTerm) ||
+                        note.content.toLowerCase().includes(searchTerm) ||
+                        (note.attachments && note.attachments.some(att => 
+                            att.name.toLowerCase().includes(searchTerm)
+                        ))
+                    );
+                }
+                
+                if (categoryFilter) {
+                    filteredNotes = filteredNotes.filter(note => note.category === categoryFilter);
+                }
+                
+                filteredNotes.sort((a, b) => {
+                    switch (sortBy) {
+                        case 'oldest':
+                            return new Date(a.createdAt) - new Date(b.createdAt);
+                        case 'title':
+                            return a.title.localeCompare(b.title);
+                        case 'newest':
+                        default:
+                            return new Date(b.createdAt) - new Date(a.createdAt);
+                    }
+                });
+                
+                return filteredNotes;
+            }
+
+            renderNotes() {
+                const container = document.getElementById('notesContainer');
+                const notes = this.getFilteredAndSortedNotes();
+                
+                if (notes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No notes found</h3>
+                            <p>Try adjusting your search or filters</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = notes.map(note => `
+                    <div class="note-card fade-in">
+                        <div class="note-meta">
+                            <span class="note-category">${note.category}</span>
+                            <span>${this.formatDate(note.createdAt)}</span>
+                        </div>
+                        <div class="note-title">${this.escapeHtml(note.title)}</div>
+                        <div class="note-content" id="content-${note.id}">
+                            ${this.escapeHtml(note.content)}
+                        </div>
+                        ${note.attachments && note.attachments.length > 0 ? `
+                            <div class="note-attachments">
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #495057; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>📎 ${note.attachments.length} attachment(s)</span>
+                                    ${note.attachments.length > 1 ? `
+                                        <div>
+                                            <button class="btn btn-small btn-success" onclick="notesApp.downloadAllAttachments('${note.id}')" title="Download all files">
+                                                ⬇️ Download All
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="attachment-list">
+                                    ${note.attachments.map(attachment => `
+                                        <div class="attachment-item" onclick="notesApp.downloadAttachment('${note.id}', '${attachment.id}')" title="Click to download ${attachment.name}">
+                                            <span class="attachment-icon">${this.getFileIcon(attachment.type)}</span>
+                                            <span class="attachment-name">${attachment.name}</span>
+                                            <small>(${this.formatFileSize(attachment.size)})</small>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ${note.attachments.some(att => att.isImage) ? `
+                                    <div class="image-previews" style="margin-top: 10px;">
+                                        ${note.attachments.filter(att => att.isImage).slice(0, 3).map(img => `
+                                            <img src="${img.data}" alt="${img.name}" class="image-preview" onclick="notesApp.viewImage('${img.data}', '${img.name}')" title="Click to view full size">
+                                        `).join('')}
+                                        ${note.attachments.filter(att => att.isImage).length > 3 ? `
+                                            <small style="color: #6c757d; margin-left: 10px;">+${note.attachments.filter(att => att.isImage).length - 3} more image(s)</small>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        <div class="note-actions">
+                            <button class="btn btn-small" onclick="notesApp.editNote('${note.id}')">Edit</button>
+                            <button class="btn btn-small btn-danger" onclick="notesApp.deleteNote('${note.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            viewImage(src, name) {
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.8); z-index: 1000; display: flex;
+                    align-items: center; justify-content: center; cursor: pointer;
+                `;
+                modal.innerHTML = `
+                    <img src="${src}" alt="${name}" style="max-width: 90%; max-height: 90%; border-radius: 10px;">
+                `;
+                modal.onclick = () => document.body.removeChild(modal);
+                document.body.appendChild(modal);
+            }
+
+            clearForm() {
+                document.getElementById('noteForm').reset();
+                this.selectedFiles = [];
+                this.selectedFileIds.clear();
+                this.updateFilePreview();
+            }
+
+            updateStats() {
+                const totalFiles = this.notes.reduce((count, note) => 
+                    count + (note.attachments ? note.attachments.length : 0), 0
+                );
+                document.getElementById('noteCount').textContent = this.notes.length;
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    
